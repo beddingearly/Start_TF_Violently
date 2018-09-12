@@ -56,6 +56,8 @@ def test_Liner_Regression():
 
         optimizer.apply_gradients(grads_and_vars=zip(grads, variables))
 
+# 模型类的形式非常简单，主要包含 __init__() (构造函数，初始化)和 call(input) (模型调用)两个方法，
+# 但也可以根据需要增加自定义的方法
 class MyModel(tf.keras.Model):
     def __init__(self):
         super(MyModel, self).__init__()
@@ -63,20 +65,45 @@ class MyModel(tf.keras.Model):
     def call(self, inputs, training=None, mask=None):
         output = ''
         return output
+
 class Linear(tf.keras.Model):
     def __init__(self):
-        super(Linear).__init__()
+        super(Linear, self).__init__()
+        self.dense = tf.keras.layers.Dense(units=1, kernel_initializer=tf.zeros_initializer(),
+                                           bias_initializer=tf.zeros_initializer())
+    def call(self, input):
+        output = self.dense(input)
+        return output
 
-class A(object):
-    def __init__(self):
-        print 'A'
-class B(A):
-    def __init__(self):
-        super(A, self).__init__()
-        print 'B'
+def test_model_layer():
+    tf.enable_eager_execution()
+    X = tf.constant([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    y = tf.constant([[10.0], [20.0]])
+
+    model = Linear()
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
+
+    for i in range(10000):
+        with tf.GradientTape() as tape:
+            y_pred = model(X)
+            loss = tf.reduce_mean(tf.square(y_pred - y))
+        grads = tape.gradient(loss, model.variables)
+        optimizer.apply_gradients(grads_and_vars=zip(grads, model.variables))
+    print model.variables
+
+def test_minist():
+    pass
 
 
 
 if __name__ == '__main__':
-    #test_Liner_Regression()
-    b = B()
+    test_model_layer()
+
+
+#class A(object):
+#     def __init__(self):
+#         print 'A'
+# class B(A):
+#     def __init__(self):
+#         super(B, self).__init__()
+#         print 'B'
