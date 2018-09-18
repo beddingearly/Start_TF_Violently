@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import time
-
+import matplotlib.pyplot as plt
 N_STATES = 6   # 1维世界的宽度
 
 ACTIONS = ['left', 'right']     # 探索者的可用动作
@@ -16,7 +16,7 @@ ALPHA = 0.1     # 学习效率
 
 GAMMA = 0.9    # 未来奖励的递减/衰减值
 
-MAX_EPISODES = 13   # 最大回合数
+MAX_EPISODES = 40   # 最大回合数
 
 FRESH_TIME = 0.3    # 移动间隔时间
 
@@ -86,7 +86,7 @@ def rl():
             q_predict = q_table.loc[S, A]    # 估算的(状态-行为)值
             print('q_predict', q_predict)
             if S_ != 'terminal':
-                q_target = R + GAMMA * q_table.iloc[S_, :].max()   #  实际的(状态-行为)值 (回合没结束)
+                q_target = R + GAMMA * q_table.loc[S_, A]   #  实际的(状态-行为)值 (回合没结束)
             else:
                 q_target = R     #  实际的(状态-行为)值 (回合结束)
                 is_terminated = True    # terminate this episode
@@ -100,6 +100,7 @@ def rl():
             update_env(S, episode, step_counter+1)  # 环境更新
 
             step_counter += 1
+        print episode
     return q_table
 
 
