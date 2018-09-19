@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import time
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 N_STATES = 6   # 1维世界的宽度
 
 ACTIONS = ['left', 'right']     # 探索者的可用动作
@@ -36,7 +36,6 @@ def choose_action(state, q_table):
         action_name = np.random.choice(ACTIONS)
     else:
         action_name = state_actions.argmax()    # 贪婪模式
-    #print action_name
     return action_name
 
 def get_env_feedback(S, A):
@@ -86,7 +85,7 @@ def rl():
             q_predict = q_table.loc[S, A]    # 估算的(状态-行为)值
             print('q_predict', q_predict)
             if S_ != 'terminal':
-                q_target = R + GAMMA * q_table.loc[S_, A]   #  实际的(状态-行为)值 (回合没结束)
+                q_target = R + GAMMA * q_table.iloc[S_, :].max()   #  实际的(状态-行为)值 (回合没结束)
             else:
                 q_target = R     #  实际的(状态-行为)值 (回合结束)
                 is_terminated = True    # terminate this episode
