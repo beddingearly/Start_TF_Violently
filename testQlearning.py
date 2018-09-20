@@ -27,6 +27,7 @@ class QL(object):
         self.reward = 0
         self.action = {0: 'left', 1: 'right', 'T': 'done'}
         self.state = 0 # len(self.q_table)
+        self.Q = 0
 
 
     def get_Action(self, state):# 上一个state--下一个action
@@ -77,8 +78,6 @@ class QL(object):
             target = reward
         else:
             target = reward + self.GAMMA * self.q_table[state].index(max(self.q_table[state]))
-        # if self.ALPHA * (target - predict) != 0.0:
-        #     print self.ALPHA * (target - predict)
         self.q_table[old_state][action] += self.ALPHA * (target - predict)
         #print self.q_table[old_state][action]
 
@@ -101,16 +100,6 @@ class QL(object):
                 print self.q_table
 
 
-    def move(self):
-        pic = '''
-        ooooo
-        ooooo
-        ooooo
-        ooooo
-        ooooo
-        '''
-        print pic
 if __name__ == '__main__':
-
     q = QL()
     q.ql()
