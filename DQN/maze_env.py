@@ -1,3 +1,4 @@
+#coding=utf-8
 """
 Reinforcement learning maze example.
 
@@ -20,8 +21,8 @@ else:
     import tkinter as tk
 
 UNIT = 40   # pixels
-MAZE_H = 4  # grid height
-MAZE_W = 4  # grid width
+MAZE_H = 8  # grid height
+MAZE_W = 8  # grid width
 
 
 class Maze(tk.Tk, object):

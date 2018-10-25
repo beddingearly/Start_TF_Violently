@@ -1,3 +1,4 @@
+#coding=utf-8
 """
 This part of code is the DQN brain, which is a brain of the agent.
 All decisions are made in here.
@@ -27,7 +28,7 @@ class DeepQNetwork:
             learning_rate=0.01,
             reward_decay=0.9,
             e_greedy=0.9,
-            replace_target_iter=300,
+            replace_target_iter=300,  # 替换target步数
             memory_size=500,
             batch_size=32,
             e_greedy_increment=None,
