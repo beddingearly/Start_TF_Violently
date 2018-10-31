@@ -18,7 +18,7 @@ Using:
 Tensorflow: 1.0
 gym: 0.8.0
 """
-
+import gym
 import numpy as np
 import tensorflow as tf
 
@@ -83,20 +83,34 @@ class PolicyGradient:
 
         with tf.name_scope('loss'):
             # to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
-            neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
+            # neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
             # or in this way:
-            # neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
-            loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
+            # tensorflow中tf.one_hot()函数的作用是将一个值化为一个概率分布的向量，一般用于分类问题。
+            neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 
+            #print('neg_log_prob', self.sess.run(neg_log_prob))
+
+            self.loss = tf.reduce_mean(neg_log_prob * self.tf_vt)  # reward guided loss
+
+            # with tf.Session() as sess:
+            #     print('loss', sess.run(loss,
+            #                            feed_dict={self.tf_obs: self.observation}))
         with tf.name_scope('train'):
-            self.train_op = tf.train.AdamOptimizer(self.lr).minimize(loss)
+            self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss)
 
     def choose_action(self, observation):
         prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
         action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
+
+        # with tf.Session() as sess:
+        #     print('loss', sess.run(self.loss,
+        #                            feed_dict={self.tf_obs: observation[np.newaxis, :],
+        #                                       self.tf_acts: np.array(self.ep_as)}))
+
         return action
 
     def store_transition(self, s, a, r):
+
         self.ep_obs.append(s)
         self.ep_as.append(a)
         self.ep_rs.append(r)
@@ -112,8 +126,18 @@ class PolicyGradient:
              self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
         })
 
+        # LOSS: -log(prob) * vt
+        loss = ('loss', self.sess.run(self.loss, feed_dict={
+            self.tf_obs: np.vstack(self.ep_obs),  # shape=[None, n_obs]
+            self.tf_acts: np.array(self.ep_as),  # shape=[None, ]
+            self.tf_vt: discounted_ep_rs_norm,  # shape=[None, ]
+        }))
+
         self.ep_obs, self.ep_as, self.ep_rs = [], [], []    # empty episode data
-        return discounted_ep_rs_norm
+        # ('discounted_ep_rs_norm', array([ 0.36681077,  0.36681077,  0.36681076, ..., -5.66579261,
+        #        -5.726728  , -5.7882789 ]))
+        print('discounted_ep_rs_norm', len(discounted_ep_rs_norm), discounted_ep_rs_norm)
+        return discounted_ep_rs_norm, loss
 
     def _discount_and_norm_rewards(self):
         # discount episode rewards
@@ -129,4 +153,16 @@ class PolicyGradient:
         return discounted_ep_rs
 
 
-
+if __name__ == '__main__':
+    env = gym.make('CartPole-v0')
+    env.seed(1)
+    env = env.unwrapped
+    env = env.reset()
+    print type(env)
+    a = np.array([0.03073904, 0.0014500, -0.03088818, -0.03131252])
+    print type(a)
+    p = PolicyGradient(n_actions=2,
+                       n_features=4,
+                       learning_rate=0.02,
+                       reward_decay=0.99)
+    print p.choose_action(a)
