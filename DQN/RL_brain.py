@@ -49,12 +49,15 @@ class DeepQNetwork:
         self.learn_step_counter = 0
 
         # initialize zero memory [s, a, r, s_]
+        #                         500              6
         self.memory = np.zeros((self.memory_size, n_features * 2 + 2))
 
         # consist of [target_net, evaluate_net]
         self._build_net()
         t_params = tf.get_collection('target_net_params')
         e_params = tf.get_collection('eval_net_params')
+
+        # 负值操作 t = e
         self.replace_target_op = [tf.assign(t, e) for t, e in zip(t_params, e_params)]
 
         self.sess = tf.Session()
@@ -89,10 +92,12 @@ class DeepQNetwork:
                 b2 = tf.get_variable('b2', [1, self.n_actions], initializer=b_initializer, collections=c_names)
                 self.q_eval = tf.matmul(l1, w2) + b2
 
+        # train
         with tf.variable_scope('loss'):
             self.loss = tf.reduce_mean(tf.squared_difference(self.q_target, self.q_eval))
         with tf.variable_scope('train'):
             self._train_op = tf.train.RMSPropOptimizer(self.lr).minimize(self.loss)
+
 
         # ------------------ build target_net ------------------
         self.s_ = tf.placeholder(tf.float32, [None, self.n_features], name='s_')    # input
@@ -115,8 +120,11 @@ class DeepQNetwork:
     def store_transition(self, s, a, r, s_):
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0
-
+        # print('s', s)
+        # print('[a, r]', [a, r])
+        # print('s_', s_)
         transition = np.hstack((s, [a, r], s_))
+        # print('transition', transition)
 
         # replace the old memory with new memory
         index = self.memory_counter % self.memory_size
@@ -143,28 +151,48 @@ class DeepQNetwork:
             print('\ntarget_params_replaced\n')
 
         # sample batch memory from all memory
-        if self.memory_counter > self.memory_size:
+        if self.memory_counter > self.memory_size:  # 500
+            # array([13, 13,  8,  9, 13,  9, 11])   0-499            32
             sample_index = np.random.choice(self.memory_size, size=self.batch_size)
         else:
-            sample_index = np.random.choice(self.memory_counter, size=self.batch_size)
+            sample_index = np.random.choice(self.memory_counter, size=self.batch_size)  # 32
+        # 这些行的值
         batch_memory = self.memory[sample_index, :]
 
         q_next, q_eval = self.sess.run(
             [self.q_next, self.q_eval],
             feed_dict={
-                self.s_: batch_memory[:, -self.n_features:],  # fixed params
+                self.s_: batch_memory[:, -self.n_features:],  # fixed params 从后往前数
                 self.s: batch_memory[:, :self.n_features],  # newest params
             })
+        print('q_next', q_next)
+        print('q_next--max', np.max(q_next, axis=1))
 
         # change q_target w.r.t q_eval's action
         q_target = q_eval.copy()
 
-        batch_index = np.arange(self.batch_size, dtype=np.int32)
+        batch_index = np.arange(self.batch_size, dtype=np.int32)  # 0-31
+        #print('batch_index', batch_index)
+
+        # array([[ 0.625,  0.5  ,  2.   ,  0.   ,  0.625,  0.5  ],
+        #        [ 0.625,  0.625,  2.   ,  0.   ,  0.625,  0.625],
+        #
+        print('batch_memory', batch_memory)
+
+        # [s1 s2 a r s_1, s_2]                     a的列
         eval_act_index = batch_memory[:, self.n_features].astype(int)
+        print('eval_act_index', eval_act_index)
+
+        # r
         reward = batch_memory[:, self.n_features + 1]
+        print('reward', reward)
 
+        # Q目标值
+        # print('q_eval', q_eval)
+
+        #        0-31
         q_target[batch_index, eval_act_index] = reward + self.gamma * np.max(q_next, axis=1)
-
+        print('q_taregt', q_target)
         """
         For example in this batch I have 2 samples and 3 actions:
         q_eval =

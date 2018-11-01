@@ -22,6 +22,8 @@ def run_maze():
             # fresh env
             env.render()
 
+            # print('observation', observation)
+
             # RL choose action based on observation
             action = RL.choose_action(observation)
 
@@ -49,6 +51,8 @@ def run_maze():
 if __name__ == "__main__":
     # maze game
     env = Maze()
+    print('env.n_action', env.n_actions)  # 4
+    print('env.n_features', env.n_features)  # 2
     RL = DeepQNetwork(env.n_actions, env.n_features,
                       learning_rate=0.01,
                       reward_decay=0.9,
