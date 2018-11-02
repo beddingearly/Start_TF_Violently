@@ -139,6 +139,9 @@ class DeepQNetwork:
         if np.random.uniform() < self.epsilon:
             # forward feed the observation and get q value for every actions
             actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})
+            #print('action_value', actions_value)
+
+            # 上下左右哪个值最大，返回其索引
             action = np.argmax(actions_value)
         else:
             action = np.random.randint(0, self.n_actions)

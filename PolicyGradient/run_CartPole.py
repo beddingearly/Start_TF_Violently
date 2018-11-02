@@ -60,7 +60,7 @@ for i_episode in range(110):
         #if RENDER: env.render()
 
         action = RL.choose_action(observation)
-        #print('action', action)
+        print('action', action)
         observation_, reward, done, info = env.step(action)
         # print('observation_', observation_)
         # print('reward', reward)

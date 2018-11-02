@@ -71,9 +71,10 @@ for i_episode in range(1000):
 
             print("episode:", i_episode, "  reward:", int(running_reward))
 
-            vt = RL.learn()  # train
+            vt, loss = RL.learn()  # train
 
-            if i_episode == 30:
+
+            if i_episode == 5:
                 plt.plot(vt)  # plot the episode vt
                 plt.xlabel('episode steps')
                 plt.ylabel('normalized state-action value')

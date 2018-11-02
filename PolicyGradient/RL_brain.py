@@ -81,11 +81,13 @@ class PolicyGradient:
 
         self.all_act_prob = tf.nn.softmax(all_act, name='act_prob')  # use softmax to convert to probability
 
+
         with tf.name_scope('loss'):
             # to maximize total reward (log_p * R) is to minimize -(log_p * R), and the tf only have minimize(loss)
             # neg_log_prob = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=all_act, labels=self.tf_acts)   # this is negative log of chosen action
             # or in this way:
             # tensorflow中tf.one_hot()函数的作用是将一个值化为一个概率分布的向量，一般用于分类问题。
+            # 所有的action求和
             neg_log_prob = tf.reduce_sum(-tf.log(self.all_act_prob)*tf.one_hot(self.tf_acts, self.n_actions), axis=1)
 
             #print('neg_log_prob', self.sess.run(neg_log_prob))
@@ -100,6 +102,10 @@ class PolicyGradient:
 
     def choose_action(self, observation):
         prob_weights = self.sess.run(self.all_act_prob, feed_dict={self.tf_obs: observation[np.newaxis, :]})
+        # ('range(prob_weights.shape[1])', [0, 1])
+        # ('prob_weights.ravel()', array([0.4713806, 0.5286194], dtype=float32))
+        print('range(prob_weights.shape[1])', range(prob_weights.shape[1]))
+        print('prob_weights.ravel()',prob_weights.ravel())
         action = np.random.choice(range(prob_weights.shape[1]), p=prob_weights.ravel())  # select action w.r.t the actions prob
 
         # with tf.Session() as sess:
@@ -118,6 +124,15 @@ class PolicyGradient:
     def learn(self):
         # discount and normalize episode reward
         discounted_ep_rs_norm = self._discount_and_norm_rewards()
+        '''
+        ('discounted_ep_rs_norm', 883, array([ 5.38614011e-01,  5.38607212e-01,  5.38600345e-01,  5.38593407e-01,
+        5.38586400e-01,  5.38579322e-01,  5.38572173e-01,  5.38564951e-01,
+        5.38557657e-01,  5.38550288e-01,  5.38542846e-01,  5.38535328e-01,
+        5.38527734e-01,  5.38520063e-01,  5.38512315e-01,  5.38504489e-01,
+        5.38496584e-01,  5.38488599e-01,  5.38480533e-01,  5.38472385e-01,
+        5.38464156e-01,  5.38455843e-01,  5.38447446e-01,  5.38438965e-01,
+        '''
+        print('vt', discounted_ep_rs_norm)
 
         # train on episode
         self.sess.run(self.train_op, feed_dict={
@@ -141,6 +156,7 @@ class PolicyGradient:
 
     def _discount_and_norm_rewards(self):
         # discount episode rewards
+        # R = r1 + r2 + r3 + ...
         discounted_ep_rs = np.zeros_like(self.ep_rs)
         running_add = 0
         for t in reversed(range(0, len(self.ep_rs))):
@@ -158,11 +174,9 @@ if __name__ == '__main__':
     env.seed(1)
     env = env.unwrapped
     env = env.reset()
-    print type(env)
     a = np.array([0.03073904, 0.0014500, -0.03088818, -0.03131252])
-    print type(a)
     p = PolicyGradient(n_actions=2,
                        n_features=4,
                        learning_rate=0.02,
                        reward_decay=0.99)
-    print p.choose_action(a)
+    print(p.choose_action(a))

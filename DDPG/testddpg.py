@@ -6,3 +6,15 @@
 @File    : testddpg.py
 @Software: PyCharm
 '''
+import tensorflow as tf
+import numpy as np
+
+class DDPG(object):
+    def __init__(self):
+        self.gamma = 0.9
+        self.lr_A = 0.001
+        self.lr_C = 0.002
+
+
+
+
