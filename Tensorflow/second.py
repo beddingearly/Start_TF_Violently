@@ -66,7 +66,7 @@ def build():
     xs = tf.placeholder(tf.float32, [None, 1], name='x_in')
     ys = tf.placeholder(tf.float32, [None, 1], name='y_in')
 
-    # 隐藏层       输入 输入层1 输出层10
+    # 隐藏层       输入 输入层1 输出层10   激活函数
     l1 = add_layer(xs, 1, 10, activation_function=tf.nn.relu)
 
     # 输出层
@@ -74,10 +74,11 @@ def build():
 
     loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys - prediction), reduction_indices=[1]))
 
+    # optimizer 优化器
     train_step = tf.train.GradientDescentOptimizer(0.1).minimize(loss)# 学习效率
     train_step = tf.train.AdadeltaOptimizer(0.1).minimize(loss)
     train_step = tf.train.AdagradOptimizer(0.1).minimize(loss)
-    train_step = tf.train.MomentumOptimizer(0.1, 0.9).minimize(loss)
+    #train_step = tf.train.MomentumOptimizer(0.1, 0.9).minimize(loss)
 
     init = tf.global_variables_initializer()
 
