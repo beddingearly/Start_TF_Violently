@@ -81,12 +81,15 @@ class Actor(object):
 
     def learn(self, s, a, td):
         s = s[np.newaxis, :]
-        feed_dict = {self.s: s, self.a: a, self.td_error: td}
-        _, exp_v = self.sess.run([self.train_op, self.exp_v], feed_dict)
+        _, exp_v = self.sess.run([self.train_op, self.exp_v],
+                                 feed_dict={self.s: s,
+                                            self.a: a,
+                                            self.td_error: td})
         return exp_v
 
     def choose_action(self, s):
         s = s[np.newaxis, :]
+        print('action', self.sess.run(self.action, {self.s: s}))
         return self.sess.run(self.action, {self.s: s})  # get probabilities for all actions
 
 

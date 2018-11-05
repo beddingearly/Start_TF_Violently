@@ -120,6 +120,7 @@ class PolicyGradient:
         self.ep_obs.append(s)
         self.ep_as.append(a)
         self.ep_rs.append(r)
+        print('reward', self.ep_rs)
 
     def learn(self):
         # discount and normalize episode reward
